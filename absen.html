@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GeoAttend - Attendance App</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 2rem;
+            width: 90%;
+            max-width: 400px;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 1.5rem;
+            color: #2c3e50;
+        }
+
+        .attendance-form {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+
+        button {
+            background-color: #3498db;
+            color: #fff;
+            border: none;
+            padding: 0.75rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #2980b9;
+        }
+
+        #status {
+            margin-top: 1rem;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .success {
+            color: #27ae60;
+        }
+
+        .error {
+            color: #c0392b;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                width: 95%;
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>GeoAttend</h1>
+        <form class="attendance-form" onsubmit="markAttendance(event)">
+            <div class="form-group">
+                <label for="name">Name:</label>
+                <input type="text" id="name" required>
+            </div>
+            <div class="form-group">
+                <label for="employee-id">Employee ID:</label>
+                <input type="text" id="employee-id" required>
+            </div>
+            <button type="submit">Mark Attendance</button>
+        </form>
+        <div id="status"></div>
+    </div>
+
+    <script>
+        // Define the target location (e.g., office or school)
+        const targetLat = 40.7128; // Example: New York City latitude
+        const targetLon = -74.0060; // Example: New York City longitude
+        const allowedRadius = 100; // Allowed radius in meters
+
+        function markAttendance(event) {
+            event.preventDefault();
+            const name = document.getElementById('name').value;
+            const employeeId = document.getElementById('employee-id').value;
+            const statusElement = document.getElementById('status');
+
+            if ("geolocation" in navigator) {
+                navigator.geolocation.getCurrentPosition(function(position) {
+                    const userLat = position.coords.latitude;
+                    const userLon = position.coords.longitude;
+                    
+                    const distance = calculateDistance(userLat, userLon, targetLat, targetLon);
+                    
+                    if (distance <= allowedRadius) {
+                        statusElement.textContent = `Attendance marked successfully for ${name} (${employeeId})!`;
+                        statusElement.className = 'success';
+                    } else {
+                        statusElement.textContent = "You are not within the allowed area.";
+                        statusElement.className = 'error';
+                    }
+                }, function(error) {
+                    statusElement.textContent = "Error: " + error.message;
+                    statusElement.className = 'error';
+                });
+            } else {
+                statusElement.textContent = "Geolocation is not supported by your browser.";
+                statusElement.className = 'error';
+            }
+        }
+
+        function calculateDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371e3; // Earth's radius in meters
+            const f1 = lat1 * Math.PI/180;
+            const f2 = lat2 * Math.PI/180;
+            const ?f = (lat2-lat1) * Math.PI/180;
+            const ?? = (lon2-lon1) * Math.PI/180;
+
+            const a = Math.sin(?f/2) * Math.sin(?f/2) +
+                      Math.cos(f1) * Math.cos(f2) *
+                      Math.sin(??/2) * Math.sin(??/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+
+            return R * c; // Distance in meters
+        }
+    </script>
+</body>
+</html>
